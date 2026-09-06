@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Industrial Safety Command Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #070b19;
+            --bg-card: rgba(15, 23, 42, 0.65);
+            --border-glow: rgba(0, 242, 254, 0.25);
+            --cyan-glow: #00f2fe;
+            --blue-accent: #4facfe;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --sidebar-width: 260px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Animated Grid & Glow Background */
+        .bg-grid {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: 
+                linear-gradient(rgba(0, 242, 254, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 242, 254, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -2;
+        }
+
+        .glow-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.4;
+            animation: floatOrb 10s infinite alternate ease-in-out;
+        }
+        .orb-1 { top: -100px; left: -100px; width: 400px; height: 400px; background: var(--cyan-glow); }
+        .orb-2 { bottom: -100px; right: -100px; width: 500px; height: 500px; background: var(--blue-accent); }
+
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(10, 15, 30, 0.85);
+            backdrop-filter: blur(16px);
+            border-right: 1px solid var(--border-glow);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            color: var(--cyan-glow);
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: #fff;
+            background: rgba(0, 242, 254, 0.1);
+            border-color: var(--border-glow);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+        }
+
+        /* Main Content Area */
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, #fff, var(--cyan-glow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--success);
+            padding: 6px 16px;
+            border-radius: 20px;
+            color: var(--success);
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .status-dot {
+            width: 8px; height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--success);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        /* Glass Cards */
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glow);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: var(--cyan-glow);
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.25);
+            transform: translateY(-3px);
+        }
+
+        /* Views */
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            text-align: center;
+        }
+        .stat-card h3 { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+        .stat-card .value { font-family: 'Orbitron', sans-serif; font-size: 2rem; font-weight: 800; color: #fff; }
+
+        /* Tables */
+        .table-container { overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 12px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+        th { color: var(--cyan-glow); text-transform: uppercase; font-size: 0.85rem; }
+        tr:hover { background: rgba(255, 255, 255, 0.03); }
+
+        /* Status Badges */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge.healthy, .badge.safe, .badge.low, .badge.closed { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
+        .badge.warning, .badge.medium, .badge.open { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid var(--warning); }
+        .badge.danger, .badge.high, .badge.critical { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+
+        /* Forms */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; }
+        input, select {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-glow);
+            padding: 10px;
+            border-radius: 6px;
+            color: #fff;
+            outline: none;
+        }
+        input:focus, select:focus { border-color: var(--cyan-glow); box-shadow: 0 0 10px rgba(0, 242, 254, 0.3); }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(135deg, var(--cyan-glow), var(--blue-accent));
+            border: none;
+            color: #000;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+        .btn:hover { box-shadow: 0 0 15px rgba(0, 242, 254, 0.6); transform: translateY(-2px); }
+        .btn-secondary { background: transparent; border: 1px solid var(--border-glow); color: var(--text-main); }
+
+        /* Hazard & Zones */
+        .zone-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+        .zone-card { position: relative; overflow: hidden; }
+        .zone-card.alert { border-color: var(--danger); }
+
+        /* PPE Items */
+        .ppe-list { display: flex; flex-direction: column; gap: 12px; }
+        .ppe-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; }
+        .progress-bar { width: 100%; height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--cyan-glow), var(--success)); width: 87%; transition: width 0.5s ease; }
+
+        /* Footer */
+        footer {
+            margin-top: auto;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Mobile Responsive */
+        .menu-toggle { display: none; font-size: 1.5rem; cursor: pointer; color: var(--cyan-glow); }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.active { transform: translateX(0); }
+            .main-wrapper { margin-left: 0; }
+            .menu-toggle { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="brand">
+            <span style="font-size: 1.5rem;">🛡️</span>
+            <span>SAFE-CORE AI</span>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item active" onclick="switchTab('dashboard', this)"><span>📊</span> Dashboard</li>
+            <li class="nav-item" onclick="switchTab('employees', this)"><span>👷</span> Employees</li>
+            <li class="nav-item" onclick="switchTab('health', this)"><span>❤️</span> Health & Medical</li>
+            <li class="nav-item" onclick="switchTab('hazards', this)"><span>⚠️</span> Hazard Zones</li>
+            <li class="nav-item" onclick="switchTab('incidents', this)"><span>📝</span> Incidents</li>
+            <li class="nav-item" onclick="switchTab('ppe', this)"><span>🦺</span> PPE Compliance</li>
+            <li class="nav-item" onclick="switchTab('alerts', this)"><span>🔔</span> Alert Center</li>
+            <li class="nav-item" onclick="switchTab('modules', this)"><span>ℹ️</span> System Modules</li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-wrapper">
+        <div class="top-bar">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span class="menu-toggle" onclick="toggleSidebar()">☰</span>
+                <div class="page-title">
+                    <h1 id="pageHeading">Industrial Safety Command Center</h1>
+                </div>
+            </div>
+            <div class="system-status">
+                <div class="status-dot"></div>
+                SYSTEM ACTIVE
+            </div>
+        </div>
+
+        <!-- 1. DASHBOARD -->
+        <section id="dashboard" class="view-section active">
+            <div class="stats-grid">
+                <div class="glass-card stat-card">
+                    <h3>Total Employees</h3>
+                    <div class="value" id="stat-total">0</div>
+                </div>
+                <div class="glass-card stat-card">
+                    <h3>Safe Employees</h3>
+                    <div class="value" style="color: var(--success);" id="stat-safe">0</div>
+                </div>
+                <div class="glass-card stat-card">
+                    <h3>At-Risk</h3>
+                    <div class="value" style="color: var(--danger);" id="stat-risk">0</div>
+                </div>
+                <div class="glass-card stat-card">
+                    <h3>Active Hazards</h3>
+                    <div class="value" style="color: var(--warning);" id="stat-hazards">1</div>
+                </div>
+                <div class="glass-card stat-card">
+                    <h3>Open Incidents</h3>
+                    <div class="value" id="stat-incidents">0</div>
+                </div>
+                <div class="glass-card stat-card">
+                    <h3>PPE Compliance</h3>
+                    <div class="value" style="color: var(--cyan-glow);" id="stat-ppe">87%</div>
+                </div>
+            </div>
+
+            <div class="glass-card" style="margin-bottom: 25px;">
+                <h3 style="color: var(--cyan-glow); margin-bottom: 15px;">Safety Overview</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Department</th>
+                                <th>Health</th>
+                                <th>Safety</th>
+                            </tr>
+                        </thead>
+                        <tbody id="overview-table"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. EMPLOYEES -->
+        <section id="employees" class="view-section">
+            <div class="glass-card" style="margin-bottom: 25px;">
+                <h3 style="color: var(--cyan-glow); margin-bottom: 15px;">Add New Employee</h3>
+                <form id="empForm" onsubmit="addEmployee(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Employee ID</label>
+                            <input type="number" id="empId" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input type="text" id="empName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Department</label>
+                            <input type="text" id="empDept" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Age</label>
+                            <input type="number" id="empAge" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Health Status</label>
+                            <select id="empHealth">
+                                <option value="Healthy">Healthy</option>
+                                <option value="Under Observation">Under Observation</option>
+                                <option value="At Risk">At Risk</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Safety Status</label>
+                            <select id="empSafety">
+                                <option value="Safe">Safe</option>
+                                <option value="Warning">Warning</option>
+                                <option value="Critical">Critical</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Add Employee</button>
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('empForm').reset()">Clear</button>
+                </form>
+            </div>
+
+            <div class="glass-card">
+                <h3 style="color: var(--cyan-glow); margin-bottom: 15px;">Employee Roster</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Dept</th>
+                                <th>Age</th>
+                                <th>Health</th>
+                                <th>Safety</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="emp-table"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. HEALTH & MEDICAL -->
+        <section id="health" class="view-section">
+            <div class="glass-card">
+                <h3 style="color: var(--cyan-glow); margin-bottom: 15px;">Medical Records</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Last Checkup</th>
+                                <th>Health Status</th>
+                                <th>Training Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="health-table"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. HAZARD ZONES -->
+        <section id="hazards" class="view-section">
+            <div style="margin-bottom: 20px;">
+                <button class="btn" onclick="simulateHazards()">⚡ Simulate Sensor Readings</button>
+            </div>
+            <div class="zone-grid" id="zone-container"></div>
+        </section>
+
+        <!-- 5. INCIDENTS -->
+        <section id="incidents" class="view-section">
+            <div class="glass-card" style="margin-bottom: 25px;">
+                <h3 style="color: var(--cyan-glow); margin-bottom: 15px;">Report Incident</h3>
+                <form id="incForm" onsubmit="addIncident(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Incident ID</label>
+                            <input type="text" id="incId" placeholder="INC003" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Employee Name</label>
+                            <input type="text" id="incEmp" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Cause</label>
+                            <input type="text" id="incCause" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Severity</label>
+                            <select id="incSeverity">
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                                <option value="Critical">Critical</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Corrective Action</label>
+                            <input type="text" id="incAction" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Log Incident</button>
+                </form>
+            </div>
+
+            <div class="glass-card">
+                <h3 style="color: var(--cyan-glow); margin-bottom: 15px;">Incident Log</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Employee</th>
+                                <th>Cause</th>
+                                <th>Severity</th>
+                                <th>Action</th>
+                                <th>Status</th>
+                                <th>Manage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inc-table"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. PPE COMPLIANCE -->
+        <section id="ppe" class="view-section">
+            <div class="glass-card" style="margin-bottom: 25px;">
+                <h3 style="color: var(--cyan-glow);">Overall Compliance: <span id="ppePct">87%</span></h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="ppeBar"></div>
+                </div>
+            </div>
+            <div class="glass-card">
+                <h3 style="color: var(--cyan-glow); margin-bottom: 15px;">Equipped Safety Gear Checklist</h3>
+                <div class="ppe-list">
+                    <div class="ppe-item">
+                        <span>🪖 Safety Helmet</span>
+                        <input type="checkbox" checked onchange="updatePPE()">
+                    </div>
+                    <div class="ppe-item">
+                        <span>🥾 Steel Toe Boots</span>
+                        <input type="checkbox" checked onchange="updatePPE()">
+                    </div>
+                    <div class="ppe-item">
+                        <span>🧤 Heavy Duty Gloves</span>
+                        <input type="checkbox" checked onchange="updatePPE()">
+                    </div>
+                    <div class="ppe-item">
+                        <span>🦺 High-Vis Vest</span>
+                        <input type="checkbox" checked onchange="updatePPE()">
+                    </div>
+                    <div class="ppe-item">
+                        <span>🥽 Safety Goggles</span>
+                        <input type="checkbox" onchange="updatePPE()">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. ALERTS -->
+        <section id="alerts" class="view-section">
+            <div class="glass-card">
+                <h3 style="color: var(--cyan-glow); margin-bottom: 15px;">Live Broadcast Stream</h3>
+                <div id="alerts-container" style="display: flex; flex-direction: column; gap: 15px;"></div>
+            </div>
+        </section>
+
+        <!-- 8. SYSTEM MODULES -->
+        <section id="modules" class="view-section">
+            <div class="zone-grid">
+                <div class="glass-card">
+                    <h4>👷 Employee Management</h4>
+                    <p style="color: var(--text-muted); margin: 10px 0;">Track personnel records and real-time safe status.</p>
+                    <button class="btn" onclick="switchTab('employees')">Open Module</button>
+                </div>
+                <div class="glass-card">
+                    <h4>⚠️ Hazard Monitoring</h4>
+                    <p style="color: var(--text-muted); margin: 10px 0;">Real-time IoT sensors reading gas and heat levels.</p>
+                    <button class="btn" onclick="switchTab('hazards')">Open Module</button>
+                </div>
+                <div class="glass-card">
+                    <h4>📝 Incident & Compliance</h4>
+                    <p style="color: var(--text-muted); margin: 10px 0;">Log workspace events and resolution metrics.</p>
+                    <button class="btn" onclick="switchTab('incidents')">Open Module</button>
+                </div>
+                <div class="glass-card">
+                    <h4>🦺 PPE Tracking</h4>
+                    <p style="color: var(--text-muted); margin: 10px 0;">Monitor gear compliance across active sectors.</p>
+                    <button class="btn" onclick="switchTab('ppe')">Open Module</button>
+                </div>
+                <div class="glass-card">
+                    <h4>🔔 Alert System</h4>
+                    <p style="color: var(--text-muted); margin: 10px 0;">Automated emergency and notification center.</p>
+                    <button class="btn" onclick="switchTab('alerts')">Open Module</button>
+                </div>
+                <div class="glass-card">
+                    <h4>❤️ Medical Records</h4>
+                    <p style="color: var(--text-muted); margin: 10px 0;">Checkup schedules and physical condition logs.</p>
+                    <button class="btn" onclick="switchTab('health')">Open Module</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p><strong>Industrial Employee Safety and Occupational Health Management System</strong></p>
+            <p>DSA0101 – OOPS with C++ | Capstone Project | <strong>Team 8</strong></p>
+        </footer>
+    </div>
+
+    <script>
+        // Initial Data
+        let employees = JSON.parse(localStorage.getItem('sys_employees')) || [
+            { id: 101, name: "Arun", dept: "Production", age: 25, health: "Healthy", safety: "Safe" },
+            { id: 102, name: "Priya", dept: "Quality", age: 27, health: "Healthy", safety: "Safe" },
+            { id: 103, name: "Kumar", dept: "Maintenance", age: 31, health: "Under Observation", safety: "Warning" }
+        ];
+
+        let hazards = [
+            { zone: "Zone A", risk: "HIGH", gas: 85, temp: 42 },
+            { zone: "Zone B", risk: "LOW", gas: 12, temp: 29 },
+            { zone: "Zone C", risk: "MEDIUM", gas: 38, temp: 35 },
+            { zone: "Zone D", risk: "LOW", gas: 18, temp: 30 }
+        ];
+
+        let incidents = JSON.parse(localStorage.getItem('sys_incidents')) || [
+            { id: "INC001", emp: "Arun", cause: "Gas exposure", severity: "High", action: "Area inspection", status: "Open" },
+            { id: "INC002", emp: "Priya", cause: "PPE issue", severity: "Medium", action: "PPE replacement", status: "Closed" }
+        ];
+
+        let alerts = [
+            { type: "critical", msg: "🚨 CRITICAL ALERT: High gas level detected in Zone A.", time: "10 mins ago" },
+            { type: "warning", msg: "⚠️ SAFETY WARNING: PPE compliance verification required.", time: "25 mins ago" },
+            { type: "info", msg: "ℹ️ SYSTEM INFORMATION: Employee health records updated.", time: "1 hour ago" }
+        ];
+
+        // Core Functions
+        function initApp() {
+            renderDashboard();
+            renderEmployees();
+            renderHealth();
+            renderHazards();
+            renderIncidents();
+            renderAlerts();
+        }
+
+        function saveData() {
+            localStorage.setItem('sys_employees', JSON.stringify(employees));
+            localStorage.setItem('sys_incidents', JSON.stringify(incidents));
+        }
+
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            if(el) el.classList.add('active');
+
+            const headings = {
+                'dashboard': 'Industrial Safety Command Center',
+                'employees': 'Employee Management System',
+                'health': 'Health & Occupational Medical Records',
+                'hazards': 'Hazard Zone Live Sensor Monitor',
+                'incidents': 'Incident Reporting & Response Log',
+                'ppe': 'PPE Compliance Tracking System',
+                'alerts': 'Live System Broadcast Alerts',
+                'modules': 'System Control Modules'
+            };
+            document.getElementById('pageHeading').innerText = headings[tabId];
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        // Render Helpers
+        function renderDashboard() {
+            document.getElementById('stat-total').innerText = employees.length;
+            document.getElementById('stat-safe').innerText = employees.filter(e => e.safety === 'Safe').length;
+            document.getElementById('stat-risk').innerText = employees.filter(e => e.safety !== 'Safe').length;
+            document.getElementById('stat-incidents').innerText = incidents.filter(i => i.status === 'Open').length;
+
+            const tbody = document.getElementById('overview-table');
+            tbody.innerHTML = employees.map(e => `
+                <tr>
+                    <td>${e.id}</td>
+                    <td>${e.name}</td>
+                    <td>${e.dept}</td>
+                    <td><span class="badge ${e.health.toLowerCase().replace(' ', '-')}">${e.health}</span></td>
+                    <td><span class="badge ${e.safety.toLowerCase()}">${e.safety}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderEmployees() {
+            const tbody = document.getElementById('emp-table');
+            tbody.innerHTML = employees.map((e, index) => `
+                <tr>
+                    <td>${e.id}</td>
+                    <td>${e.name}</td>
+                    <td>${e.dept}</td>
+                    <td>${e.age}</td>
+                    <td><span class="badge ${e.health.toLowerCase().replace(' ', '-')}">${e.health}</span></td>
+                    <td><span class="badge ${e.safety.toLowerCase()}">${e.safety}</span></td>
+                    <td>
+                        <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="deleteEmployee(${index})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function addEmployee(e) {
+            e.preventDefault();
+            const newEmp = {
+                id: parseInt(document.getElementById('empId').value),
+                name: document.getElementById('empName').value,
+                dept: document.getElementById('empDept').value,
+                age: parseInt(document.getElementById('empAge').value),
+                health: document.getElementById('empHealth').value,
+                safety: document.getElementById('empSafety').value
+            };
+            employees.push(newEmp);
+            saveData();
+            renderDashboard();
+            renderEmployees();
+            renderHealth();
+            document.getElementById('empForm').reset();
+        }
+
+        function deleteEmployee(index) {
+            employees.splice(index, 1);
+            saveData();
+            renderDashboard();
+            renderEmployees();
+            renderHealth();
+        }
+
+        function renderHealth() {
+            const tbody = document.getElementById('health-table');
+            tbody.innerHTML = employees.map(e => `
+                <tr>
+                    <td>${e.name}</td>
+                    <td>2026-08-15</td>
+                    <td><span class="badge ${e.health.toLowerCase().replace(' ', '-')}">${e.health}</span></td>
+                    <td>Passed (Level 1)</td>
+                    <td><button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="alert('Record for ${e.name}: Clear for high-risk zones.')">View Record</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderHazards() {
+            const container = document.getElementById('zone-container');
+            let activeHazards = 0;
+            container.innerHTML = hazards.map(h => {
+                const isAlert = h.gas > 70;
+                if(isAlert) activeHazards++;
+                return `
+                    <div class="glass-card zone-card ${isAlert ? 'alert' : ''}">
+                        <h3 style="margin-bottom: 10px;">${h.zone}</h3>
+                        <p>Gas Level: <strong>${h.gas}%</strong></p>
+                        <p>Temp: <strong>${h.temp}°C</strong></p>
+                        <p style="margin-top: 10px;">Risk: <span class="badge ${h.risk.toLowerCase()}">${h.risk}</span></p>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('stat-hazards').innerText = activeHazards;
+        }
+
+        function simulateHazards() {
+            hazards.forEach(h => {
+                h.gas = Math.floor(Math.random() * 90) + 10;
+                h.temp = Math.floor(Math.random() * 30) + 20;
+                h.risk = h.gas > 70 ? 'CRITICAL' : (h.gas > 40 ? 'MEDIUM' : 'LOW');
+                
+                if (h.gas > 70) {
+                    alerts.unshift({ type: "critical", msg: `🚨 CRITICAL ALERT: Sensor spike in ${h.zone} (Gas: ${h.gas}%)`, time: "Just now" });
+                }
+            });
+            renderHazards();
+            renderAlerts();
+        }
+
+        function renderIncidents() {
+            const tbody = document.getElementById('inc-table');
+            tbody.innerHTML = incidents.map((inc, i) => `
+                <tr>
+                    <td>${inc.id}</td>
+                    <td>${inc.emp}</td>
+                    <td>${inc.cause}</td>
+                    <td><span class="badge ${inc.severity.toLowerCase()}">${inc.severity}</span></td>
+                    <td>${inc.action}</td>
+                    <td><span class="badge ${inc.status.toLowerCase()}">${inc.status}</span></td>
+                    <td><button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="deleteIncident(${i})">Remove</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function addIncident(e) {
+            e.preventDefault();
+            incidents.push({
+                id: document.getElementById('incId').value,
+                emp: document.getElementById('incEmp').value,
+                cause: document.getElementById('incCause').value,
+                severity: document.getElementById('incSeverity').value,
+                action: document.getElementById('incAction').value,
+                status: 'Open'
+            });
+            saveData();
+            renderDashboard();
+            renderIncidents();
+            document.getElementById('incForm').reset();
+        }
+
+        function deleteIncident(i) {
+            incidents.splice(i, 1);
+            saveData();
+            renderDashboard();
+            renderIncidents();
+        }
+
+        function updatePPE() {
+            const boxes = document.querySelectorAll('.ppe-list input[type="checkbox"]');
+            const checked = Array.from(boxes).filter(b => b.checked).length;
+            const pct = Math.round((checked / boxes.length) * 100);
+            document.getElementById('ppePct').innerText = pct + '%';
+            document.getElementById('stat-ppe').innerText = pct + '%';
+            document.getElementById('ppeBar').style.width = pct + '%';
+        }
+
+        function renderAlerts() {
+            const container = document.getElementById('alerts-container');
+            container.innerHTML = alerts.map(a => `
+                <div style="padding: 12px; border-radius: 6px; background: rgba(0,0,0,0.3); border-left: 4px solid var(--${a.type === 'info' ? 'blue-accent' : a.type}); display: flex; justify-content: space-between;">
+                    <span>${a.msg}</span>
+                    <small style="color: var(--text-muted);">${a.time}</small>
+                </div>
+            `).join('');
+        }
+
+        // Initialize on Load
+        window.onload = initApp;
+    </script>
+</body>
+</html>
